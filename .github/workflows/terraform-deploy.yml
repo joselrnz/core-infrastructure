@@ -1,0 +1,82 @@
+name: 'Terraform Deploy'
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+permissions:
+  contents: read
+  pull-requests: write
+  # Add permission for GitHub token to access private repositories
+  packages: read
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    defaults:
+      run:
+        working-directory: ./core-infrastructure/azure/scripts
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        # This uses the built-in GITHUB_TOKEN with permissions to access private repos
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ github.event.inputs.environment == 'prod' && secrets.AZURE_PROD_CICD || secrets.AZURE_NONPROD_CICD }}
+        enable-AzPSSession: true
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.8.3
+        # Enable Terraform Cloud credentials to access private modules
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    - name: Terraform Init
+      run: terraform init
+      env:
+        # Set environment variable for Git operations
+        GIT_ASKPASS: /bin/echo
+        GIT_USERNAME: ${{ github.actor }}
+        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -no-color
+      env:
+        # Set environment variable for Git operations
+        GIT_ASKPASS: /bin/echo
+        GIT_USERNAME: ${{ github.actor }}
+        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Terraform Apply
+      run: terraform apply -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve
+      env:
+        # Set environment variable for Git operations
+        GIT_ASKPASS: /bin/echo
+        GIT_USERNAME: ${{ github.actor }}
+        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+

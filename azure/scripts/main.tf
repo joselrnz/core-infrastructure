@@ -21,9 +21,9 @@ data "azurerm_resource_group" "this" {
   name = var.resource_group_name
 }
 
-# Storage Account using the module from terraform-cloud-modules-iac
+# Storage Account using the local module instead of remote Git source
 module "storage_account" {
-  source = "git::https://github.com/joselrnz/terraform-cloud-modules-iac.git//azure/storage"
+  source = "../../modules/storage"  # Path to your local module
 
   storage_account_name      = var.storage_account_name
   resource_group_name       = data.azurerm_resource_group.this.name
@@ -46,6 +46,7 @@ module "storage_account" {
 
   depends_on = [data.azurerm_resource_group.this]
 }
+
 
 
 

@@ -11,11 +11,15 @@ on:
         options:
           - dev
           - prod
+      module_branch:
+        description: 'Branch to fetch from terraform-cloud-modules-iac'
+        required: false
+        default: 'develop'
+        type: string
 
 permissions:
   contents: read
   pull-requests: write
-  # Add permission for GitHub token to access private repositories
   packages: read
 
 jobs:
@@ -23,60 +27,56 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
-    
+
     defaults:
       run:
         working-directory: ./core-infrastructure/azure/scripts
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        # This uses the built-in GITHUB_TOKEN with permissions to access private repos
-        token: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ github.event.inputs.environment == 'prod' && secrets.AZURE_PROD_CICD || secrets.AZURE_NONPROD_CICD }}
-        enable-AzPSSession: true
+      - name: Checkout current repository
+        uses: actions/checkout@v4
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.8.3
-        # Enable Terraform Cloud credentials to access private modules
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Checkout terraform-cloud-modules-iac
+        uses: actions/checkout@v4
+        with:
+          repository: joselrnz/terraform-cloud-modules-iac
+          ref: ${{ github.event.inputs.module_branch }}
+          token: ${{ secrets.API_TOKEN_TF }}
+          path: terraform-cloud-modules-iac
 
-    - name: Terraform Format
-      run: terraform fmt -check
+      - name: Copy modules to correct location
+        run: |
+          mkdir -p ../../modules
+          if [ -d "../../terraform-cloud-modules-iac/azure" ]; then
+            cp -r ../../terraform-cloud-modules-iac/azure/* ../../modules/
+            echo "Azure modules copied to ../../modules/"
+          else
+            echo "Azure modules directory not found in terraform-cloud-modules-iac"
+            exit 1
+          fi
 
-    - name: Terraform Init
-      run: terraform init
-      env:
-        # Set environment variable for Git operations
-        GIT_ASKPASS: /bin/echo
-        GIT_USERNAME: ${{ github.actor }}
-        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      
-    - name: Terraform Validate
-      run: terraform validate
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CICD }}
+          enable-AzPSSession: true
 
-    - name: Terraform Plan
-      id: plan
-      run: terraform plan -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -no-color
-      env:
-        # Set environment variable for Git operations
-        GIT_ASKPASS: /bin/echo
-        GIT_USERNAME: ${{ github.actor }}
-        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.3
 
-    - name: Terraform Apply
-      run: terraform apply -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve
-      env:
-        # Set environment variable for Git operations
-        GIT_ASKPASS: /bin/echo
-        GIT_USERNAME: ${{ github.actor }}
-        GIT_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Terraform Format
+        run: terraform fmt -check
 
+      - name: Terraform Init
+        run: terraform init
 
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -no-color
+
+      - name: Terraform Apply
+        run: terraform apply -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve

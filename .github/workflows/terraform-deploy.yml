@@ -90,9 +90,9 @@ jobs:
           echo "Current folder contents:" && ls -la
           echo "Parent folder contents:" && ls -la ..
           echo "Top-level repo contents:" && ls -la ../..
-          echo "Looking for tfvars file: ../../env/${{ github.event.inputs.environment }}.tfvars"
+          echo "Looking for tfvars file: ../../env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
           find ../.. -type f
-          test -f ../../env/${{ github.event.inputs.environment }}.tfvars || {
+          test -f ../../env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars || {
             echo "ERROR: tfvars file not found!" >&2
             exit 1
           }
@@ -100,7 +100,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -var-file="../../env/${{ github.event.inputs.environment }}.tfvars" -no-color
+        run: terraform plan -var-file="../../env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" -no-color
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
@@ -109,7 +109,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Apply
-        run: terraform apply -var-file="../../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve
+        run: terraform apply -var-file="../../env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" -auto-approve
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}

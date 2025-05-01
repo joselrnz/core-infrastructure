@@ -84,6 +84,20 @@ jobs:
           ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
+      - name: Confirm tfvars file exists and inspect structure
+        run: |
+          echo "Current working directory:" && pwd
+          echo "Top-level repo contents:" && ls -la
+          echo "Azure folder contents:" && ls -la azure
+          echo "Azure/scripts folder contents:" && ls -la azure/scripts
+          echo "Checking for tfvars file at: ../../env/${{ github.event.inputs.environment }}.tfvars"
+          ls -la ../../env/
+          test -f ../../env/${{ github.event.inputs.environment }}.tfvars || {
+            echo "ERROR: tfvars file not found!" >&2
+            exit 1
+          }
+        working-directory: ./azure/scripts
+
       - name: Terraform Plan
         id: plan
         run: terraform plan -var-file="../../env/${{ github.event.inputs.environment }}.tfvars" -no-color

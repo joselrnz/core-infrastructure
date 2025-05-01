@@ -81,18 +81,8 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Validate
-        run: |
-          terraform validate \
-            -backend-config="resource_group_name=data-dp203" \
-            -backend-config="storage_account_name=terraformstateclouddev" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate"
+        run: terraform validate
         working-directory: ./azure/scripts
-        env:
-          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
-          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientSecret }}
-          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
-          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Confirm tfvars file exists and inspect structure
         run: |

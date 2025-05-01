@@ -6,7 +6,7 @@ on:
       branch:
         description: 'Branch to fetch from terraform-cloud-modules-iac'
         required: true
-        default: 'main'
+        default: 'develop'
         type: string
       destination_path:
         description: 'Destination path for modules'
@@ -24,9 +24,6 @@ on:
           - gcp
           - all
 
-permissions:
-  contents: read
-  metadata: read
 
 jobs:
   fetch-modules:

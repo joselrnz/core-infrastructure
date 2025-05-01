@@ -29,16 +29,3 @@ output "containers" {
   description = "Map of containers"
   value       = module.storage_account.containers
 }
-
-# Note: Provider authentication is handled via environment variables
-
-
-output "resource_group_id" {
-  description = "The ID of the resource group"
-  value       = data.azurerm_resource_group.this.id
-}
-
-output "resource_group_name" {
-  description = "The name of the resource group"
-  value       = data.azurerm_resource_group.this.name
-}

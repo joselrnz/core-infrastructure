@@ -89,15 +89,15 @@ jobs:
           echo "Current working directory:" && pwd
           echo "Current folder contents:" && ls -la
           echo "Parent folder contents:" && ls -la ..
-          echo "env folder contents:" && ls -la ../../env
-          echo "All files under repo:" && find ../..
-          echo "Checking for tfvars file at: ../../env/${{ github.event.inputs.environment }}.tfvars"
+          echo "Top-level repo contents:" && ls -la ../..
+          echo "Looking for tfvars file: ../../env/${{ github.event.inputs.environment }}.tfvars"
+          find ../.. -type f
           test -f ../../env/${{ github.event.inputs.environment }}.tfvars || {
             echo "ERROR: tfvars file not found!" >&2
             exit 1
           }
         working-directory: ./azure/scripts
-      
+
       - name: Terraform Plan
         id: plan
         run: terraform plan -var-file="../../env/${{ github.event.inputs.environment }}.tfvars" -no-color

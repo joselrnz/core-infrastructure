@@ -25,16 +25,16 @@ data "azurerm_resource_group" "this" {
 module "storage_account" {
   source = "../../modules/storage" # Path to your local module
 
-  storage_account_name     = var.storage_account_name
-  resource_group_name      = data.azurerm_resource_group.this.name
-  location                 = var.location
-  account_tier             = var.account_tier
-  account_replication_type = var.account_replication_type
-  account_kind             = var.account_kind
-  access_tier              = var.access_tier
-  enable_versioning        = var.enable_versioning
-  enable_delete_retention  = var.enable_delete_retention
-  delete_retention_days    = var.delete_retention_days
+  storage_account_name              = var.storage_account_name
+  resource_group_name               = data.azurerm_resource_group.this.name
+  location                          = var.location
+  account_tier                      = var.account_tier
+  account_replication_type          = var.account_replication_type
+  account_kind                      = var.account_kind
+  access_tier                       = var.access_tier
+  enable_versioning                 = var.enable_versioning
+  enable_delete_retention           = var.enable_delete_retention
+  delete_retention_days             = var.delete_retention_days
   enable_container_delete_retention = var.enable_container_delete_retention
   container_delete_retention_days   = var.container_delete_retention_days
 

@@ -36,6 +36,16 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
     steps:
+      - name: Mask env values to suppress logging
+        run: |
+          echo "::add-mask::$ARM_CLIENT_ID"
+          echo "::add-mask::$ARM_TENANT_ID"
+          echo "::add-mask::$ARM_SUBSCRIPTION_ID"
+        env:
+          ARM_CLIENT_ID: ${{ env.ARM_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ env.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ env.ARM_SUBSCRIPTION_ID }}
+          
       - name: Checkout current repository
         uses: actions/checkout@v4
 

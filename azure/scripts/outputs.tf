@@ -1,12 +1,12 @@
 # Resource Group outputs
 output "resource_group_id" {
   description = "The ID of the resource group"
-  value       = azurerm_resource_group.this.id
+  value       = data.azurerm_resource_group.this.id
 }
 
 output "resource_group_name" {
   description = "The name of the resource group"
-  value       = azurerm_resource_group.this.name
+  value       = data.azurerm_resource_group.this.name
 }
 
 # Storage Account outputs
@@ -31,3 +31,14 @@ output "containers" {
 }
 
 # Note: Provider authentication is handled via environment variables
+
+
+output "resource_group_id" {
+  description = "The ID of the resource group"
+  value       = data.azurerm_resource_group.this.id
+}
+
+output "resource_group_name" {
+  description = "The name of the resource group"
+  value       = data.azurerm_resource_group.this.name
+}

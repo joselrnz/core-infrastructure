@@ -86,7 +86,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -no-color
+        run: terraform plan -var-file="../../env/${{ github.event.inputs.environment }}.tfvars" -no-color
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
@@ -95,7 +95,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Apply
-        run: terraform apply -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve
+        run: terraform apply -var-file="../../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}

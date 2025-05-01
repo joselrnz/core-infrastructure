@@ -28,9 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
 
-    defaults:
-      run:
-        working-directory: ./core-infrastructure/azure/scripts
     steps:
       - name: Checkout current repository
         uses: actions/checkout@v4
@@ -45,10 +42,10 @@ jobs:
 
       - name: Copy modules to correct location
         run: |
-          mkdir -p ../../modules
-          if [ -d "../../terraform-cloud-modules-iac/azure" ]; then
-            cp -r ../../terraform-cloud-modules-iac/azure/* ../../modules/
-            echo "Azure modules copied to ../../modules/"
+          mkdir -p modules
+          if [ -d "terraform-cloud-modules-iac/azure" ]; then
+            cp -r terraform-cloud-modules-iac/azure/* modules/
+            echo "Azure modules copied to modules/"
           else
             echo "Azure modules directory not found in terraform-cloud-modules-iac"
             exit 1
@@ -67,16 +64,21 @@ jobs:
 
       - name: Terraform Format
         run: terraform fmt -check
+        working-directory: ./core-infrastructure/azure/scripts
 
       - name: Terraform Init
         run: terraform init
+        working-directory: ./core-infrastructure/azure/scripts
 
       - name: Terraform Validate
         run: terraform validate
+        working-directory: ./core-infrastructure/azure/scripts
 
       - name: Terraform Plan
         id: plan
         run: terraform plan -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -no-color
+        working-directory: ./core-infrastructure/azure/scripts
 
       - name: Terraform Apply
         run: terraform apply -var-file="../env/${{ github.event.inputs.environment }}.tfvars" -auto-approve
+        working-directory: ./core-infrastructure/azure/scripts

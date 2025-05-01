@@ -24,6 +24,9 @@ on:
           - gcp
           - all
 
+permissions:
+  contents: read
+  metadata: read
 
 jobs:
   fetch-modules:
@@ -44,26 +47,46 @@ jobs:
     - name: Create destination directory
       run: mkdir -p ${{ github.event.inputs.destination_path }}
         
+    - name: List repository contents
+      run: |
+        echo "Contents of terraform-cloud-modules-iac repository:"
+        ls -la terraform-cloud-modules-iac/
+        
     - name: Copy Azure modules
       if: ${{ github.event.inputs.module_type == 'azure' || github.event.inputs.module_type == 'all' }}
       run: |
-        cp -r terraform-cloud-modules-iac/azure/* ${{ github.event.inputs.destination_path }}/
-        echo "Azure modules copied to ${{ github.event.inputs.destination_path }}"
+        if [ -d "terraform-cloud-modules-iac/azure" ] && [ "$(ls -A terraform-cloud-modules-iac/azure)" ]; then
+          cp -r terraform-cloud-modules-iac/azure/* ${{ github.event.inputs.destination_path }}/
+          echo "Azure modules copied to ${{ github.event.inputs.destination_path }}"
+        else
+          echo "Azure modules directory is empty or does not exist"
+        fi
         
     - name: Copy AWS modules
       if: ${{ github.event.inputs.module_type == 'aws' || github.event.inputs.module_type == 'all' }}
       run: |
-        cp -r terraform-cloud-modules-iac/aws/* ${{ github.event.inputs.destination_path }}/
-        echo "AWS modules copied to ${{ github.event.inputs.destination_path }}"
+        if [ -d "terraform-cloud-modules-iac/aws" ] && [ "$(ls -A terraform-cloud-modules-iac/aws)" ]; then
+          cp -r terraform-cloud-modules-iac/aws/* ${{ github.event.inputs.destination_path }}/
+          echo "AWS modules copied to ${{ github.event.inputs.destination_path }}"
+        else
+          echo "AWS modules directory is empty or does not exist"
+        fi
         
     - name: Copy GCP modules
       if: ${{ github.event.inputs.module_type == 'gcp' || github.event.inputs.module_type == 'all' }}
       run: |
-        cp -r terraform-cloud-modules-iac/gcp/* ${{ github.event.inputs.destination_path }}/
-        echo "GCP modules copied to ${{ github.event.inputs.destination_path }}"
+        if [ -d "terraform-cloud-modules-iac/gcp" ] && [ "$(ls -A terraform-cloud-modules-iac/gcp)" ]; then
+          cp -r terraform-cloud-modules-iac/gcp/* ${{ github.event.inputs.destination_path }}/
+          echo "GCP modules copied to ${{ github.event.inputs.destination_path }}"
+        else
+          echo "GCP modules directory is empty or does not exist"
+        fi
         
     - name: List copied modules
-      run: ls -la ${{ github.event.inputs.destination_path }}
+      run: |
+        echo "Contents of destination directory:"
+        ls -la ${{ github.event.inputs.destination_path }} || echo "Destination directory is empty or does not exist"
         
+
 
 

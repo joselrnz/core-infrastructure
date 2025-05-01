@@ -1,4 +1,4 @@
-name: 'Terraform Deploy'
+name: 'BACKUP Terraform WORKS'
 
 on:
   workflow_dispatch:
@@ -27,13 +27,6 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
-
-    env:
-      TF_WORKING_DIR: ./azure/scripts
-      ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
-      ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientSecret }}
-      ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
-      ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
     steps:
       - name: Checkout current repository
@@ -71,7 +64,7 @@ jobs:
 
       - name: Terraform Format
         run: terraform fmt -check -recursive
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ./azure/scripts
 
       - name: Terraform Init
         run: |
@@ -80,11 +73,16 @@ jobs:
             -backend-config="storage_account_name=terraformstateclouddev" \
             -backend-config="container_name=tfstate" \
             -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate"
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ./azure/scripts
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientSecret }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Validate
         run: terraform validate
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ./azure/scripts
 
       - name: Confirm tfvars file exists and inspect structure
         run: |
@@ -94,7 +92,7 @@ jobs:
             echo "ERROR: tfvars file not found!" >&2
             exit 1
           }
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ./azure/scripts
 
       - name: Terraform Plan
         id: plan
@@ -102,11 +100,21 @@ jobs:
           terraform plan \
             -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
             -no-color
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ./azure/scripts
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientSecret }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Apply
         run: |
           terraform apply \
             -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
             -auto-approve
-        working-directory: ${{ env.TF_WORKING_DIR }}
+        working-directory: ./azure/scripts
+        env:
+          ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
+          ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientSecret }}
+          ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
+          ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}

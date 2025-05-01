@@ -24,7 +24,7 @@ tags = {
 }
 
 # Storage Account Configuration
-storage_account_name       = "stjoselrnzdevopsdev"
+storage_account_name       = "stjoselrnzkafka"
 account_tier               = "Standard"
 account_replication_type   = "LRS"
 account_kind               = "StorageV2"

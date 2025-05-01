@@ -1,4 +1,4 @@
-name: 'Terraform Deploy'
+name: 'BACKCUP Tform Deploy'
 
 on:
   workflow_dispatch:
@@ -67,12 +67,7 @@ jobs:
         working-directory: ./azure/scripts
 
       - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="resource_group_name=data-dp203" \
-            -backend-config="storage_account_name=terraformstateclouddev" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate"
+        run: terraform init
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
@@ -81,12 +76,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Validate
-        run: |
-          terraform validate \
-            -backend-config="resource_group_name=data-dp203" \
-            -backend-config="storage_account_name=terraformstateclouddev" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate"
+        run: terraform validate
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
@@ -106,14 +96,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: |
-          terraform plan \
-            -backend-config="resource_group_name=data-dp203" \
-            -backend-config="storage_account_name=terraformstateclouddev" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate" \
-            -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
-            -no-color
+        run: terraform plan -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" -no-color
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
@@ -122,14 +105,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
       - name: Terraform Apply
-        run: |
-          terraform apply \
-            -backend-config="resource_group_name=data-dp203" \
-            -backend-config="storage_account_name=terraformstateclouddev" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate" \
-            -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
-            -auto-approve
+        run: terraform apply -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" -auto-approve
         working-directory: ./azure/scripts
         env:
           ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}

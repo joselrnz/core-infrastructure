@@ -54,7 +54,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CICD }}
+          creds: ${{ secrets.AZURE_NONPROD_CICD }}
           enable-AzPSSession: true
 
       - name: Setup Terraform

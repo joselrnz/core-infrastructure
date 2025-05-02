@@ -1,0 +1,89 @@
+name: single-job-ip-test-delayed
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # 🔁 Single Job With 10 Steps (Same IP)
+  single_ip_job:
+    name: Single Job - 10 Steps (Wait & Check IP)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 2
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 3
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 4
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 5
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 6
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 7
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 8
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 9
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 10
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+
+  # 🧩 Additional Job A (Separate IP)
+  job_a:
+    name: Job A - Independent Runner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check IP - Job A
+        run: |
+          date
+          curl http://whatismyip.akamai.com/
+
+  # 🧩 Additional Job B (Separate IP)
+  job_b:
+    name: Job B - Independent Runner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check IP - Job B
+        run: |
+          date
+          curl http://whatismyip.akamai.com/

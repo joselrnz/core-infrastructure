@@ -11,7 +11,6 @@ on:
         options:
           - dev
           - prod
-          - sbx
       module_branch:
         description: 'Branch to fetch from terraform-cloud-modules-iac'
         required: false
@@ -31,27 +30,17 @@ jobs:
 
     env:
       TF_WORKING_DIR: ./azure/scripts
-      CREDS: >-
-        ${{ 
-          github.event.inputs.environment == 'prod' && secrets.AZURE_PROD_CICD ||
-          github.event.inputs.environment == 'sbx' && secrets.AZURE_SBX_CICD ||
-          secrets.AZURE_NONPROD_CICD
-        }}
+      ARM_CLIENT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientId }}
+      ARM_CLIENT_SECRET: ${{ fromJson(secrets.AZURE_NONPROD_CICD).clientSecret }}
+      ARM_TENANT_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).tenantId }}
+      ARM_SUBSCRIPTION_ID: ${{ fromJson(secrets.AZURE_NONPROD_CICD).subscriptionId }}
 
     steps:
-      - name: Mask sensitive values
+      - name: Mask env values to suppress logging
         run: |
-          echo "::add-mask::${{ fromJson(env.CREDS).clientId }}"
-          echo "::add-mask::${{ fromJson(env.CREDS).clientSecret }}"
-          echo "::add-mask::${{ fromJson(env.CREDS).tenantId }}"
-          echo "::add-mask::${{ fromJson(env.CREDS).subscriptionId }}"
-
-      - name: Export ARM credentials to environment
-        run: |
-          echo "ARM_CLIENT_ID=${{ fromJson(env.CREDS).clientId }}" >> $GITHUB_ENV
-          echo "ARM_CLIENT_SECRET=${{ fromJson(env.CREDS).clientSecret }}" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=${{ fromJson(env.CREDS).tenantId }}" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=${{ fromJson(env.CREDS).subscriptionId }}" >> $GITHUB_ENV
+          echo "::add-mask::$ARM_CLIENT_ID"
+          echo "::add-mask::$ARM_TENANT_ID"
+          echo "::add-mask::$ARM_SUBSCRIPTION_ID"
 
       - name: Checkout current repository
         uses: actions/checkout@v4
@@ -78,7 +67,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ env.CREDS }}
+          creds: ${{ secrets.AZURE_NONPROD_CICD }}
           enable-AzPSSession: true
 
       - name: Setup Terraform

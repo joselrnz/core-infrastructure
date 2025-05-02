@@ -12,7 +12,7 @@ locals {
     ManagedBy   = "Terraform"
     Project     = "Core Infrastructure"
     Owner       = "DevOps Team"
-    DeployedAt  = timestamp()
+    #DeployedAt  = timestamp()
   }
 }
 

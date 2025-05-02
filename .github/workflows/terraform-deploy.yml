@@ -1,4 +1,4 @@
-name: 'Terraform Deploy'
+name: 'Terraform Deploy SCAN'
 
 on:
   workflow_dispatch:

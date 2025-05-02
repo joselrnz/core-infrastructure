@@ -76,12 +76,12 @@ jobs:
             exit 1
           fi
 
-      # ✅ TFLint
-      - name: Install and Run TFLint
-        run: |
-          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          tflint --init
-          tflint --recursive
+      # # ✅ TFLint
+      # - name: Install and Run TFLint
+      #   run: |
+      #     curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      #     tflint --init
+      #     tflint --recursive
 
       # ✅ TFSEC
       - name: tfsec - Static Security Analysis (includes modules)

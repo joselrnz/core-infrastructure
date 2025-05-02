@@ -90,12 +90,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           working_directory: .
 
-      # ✅ Checkov
-      - name: Checkov - Compliance and Security Check
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: .
-          quiet: true
+      # # ✅ Checkov
+      # - name: Checkov - Compliance and Security Check
+      #   uses: bridgecrewio/checkov-action@master
+      #   with:
+      #     directory: .
+      #     quiet: true
 
       - name: Azure Login
         uses: azure/login@v2

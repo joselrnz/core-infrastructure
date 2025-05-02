@@ -93,7 +93,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ env.CREDS }} }}
+          creds: ${{ env.CREDS }}
           enable-AzPSSession: true
 
       - name: Setup Terraform

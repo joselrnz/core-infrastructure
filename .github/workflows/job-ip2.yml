@@ -1,0 +1,100 @@
+name: staged-ip-tracking-workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stage_1_initial:
+    name: Stage 1 - Initial Job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print IP - Stage 1
+        run: |
+          echo "Stage 1 IP:"
+          date
+          curl http://whatismyip.akamai.com/
+
+  stage_2_multi_steps:
+    name: Stage 2 - Single Job with 10 Steps (Wait 1 Min)
+    needs: stage_1_initial
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1
+        run: |
+          echo "Step 1:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 2
+        run: |
+          echo "Step 2:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 3
+        run: |
+          echo "Step 3:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 4
+        run: |
+          echo "Step 4:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 5
+        run: |
+          echo "Step 5:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 6
+        run: |
+          echo "Step 6:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 7
+        run: |
+          echo "Step 7:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 8
+        run: |
+          echo "Step 8:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 9
+        run: |
+          echo "Step 9:"
+          date
+          curl http://whatismyip.akamai.com/
+          sleep 60
+
+      - name: Step 10
+        run: |
+          echo "Step 10:"
+          date
+          curl http://whatismyip.akamai.com/
+
+  stage_3_final:
+    name: Stage 3 - Final Job
+    needs: stage_2_multi_steps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print IP - Stage 3
+        run: |
+          echo "Stage 3 IP:"
+          date
+          curl http://whatismyip.akamai.com/

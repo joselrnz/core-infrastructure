@@ -52,6 +52,12 @@ jobs:
             exit 1
           fi
 
+      # ✅ TFSEC
+      - name: tfsec - Static Security Analysis (includes modules)
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          working_directory: .
       - name: Extract and Mask Azure credentials from secret
         run: |
           client_id=$(echo '${{ secrets.AZURE_NONPROD_CICD }}' | jq -r '.clientId')

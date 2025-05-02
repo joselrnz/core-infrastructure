@@ -1,4 +1,4 @@
-name: 'Terraform Deploy Scan'
+name: 'Terraform Deploy'
 
 on:
   workflow_dispatch:
@@ -76,16 +76,26 @@ jobs:
             exit 1
           fi
 
+      # ✅ TFLint
+      - name: Install and Run TFLint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --init
+          tflint --recursive
+
+      # ✅ TFSEC
       - name: tfsec - Static Security Analysis (includes modules)
         uses: aquasecurity/tfsec-action@v1.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           working_directory: .
 
-      - name: Scan for secrets with TruffleHog (entire repo)
-        uses: trufflesecurity/trufflehog@v3
+      # ✅ Checkov
+      - name: Checkov - Compliance and Security Check
+        uses: bridgecrewio/checkov-action@master
         with:
-          scanArguments: "--path=."
+          directory: .
+          quiet: true
 
       - name: Azure Login
         uses: azure/login@v2

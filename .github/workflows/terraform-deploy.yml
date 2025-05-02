@@ -32,18 +32,14 @@ jobs:
 
     env:
       TF_WORKING_DIR: ./azure/scripts
+      CREDS: >-
+        ${{
+          (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
+          github.event.inputs.environment == 'sbx' && secrets.AZURE_SBX_CICD ||
+          secrets.AZURE_NONPROD_CICD
+        }}
 
     steps:
-      - name: Set environment credentials
-        run: |
-          if [[ "${{ github.event.inputs.environment }}" == "prod" || "${{ github.event.inputs.environment }}" == "qa" ]]; then
-            echo "CREDS=${{ secrets.AZURE_PROD_CICD }}" >> $GITHUB_ENV
-          elif [[ "${{ github.event.inputs.environment }}" == "sbx" ]]; then
-            echo "CREDS=${{ secrets.AZURE_SBX_CICD }}" >> $GITHUB_ENV
-          else
-            echo "CREDS=${{ secrets.AZURE_NONPROD_CICD }}" >> $GITHUB_ENV
-          fi
-
       - name: Mask sensitive values
         run: |
           echo "::add-mask::${{ fromJson(env.CREDS).clientId }}"

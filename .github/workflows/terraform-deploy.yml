@@ -11,6 +11,7 @@ on:
         options:
           - dev
           - prod
+          - qa
           - sbx
       module_branch:
         description: 'Branch to fetch from terraform-cloud-modules-iac'
@@ -32,8 +33,8 @@ jobs:
     env:
       TF_WORKING_DIR: ./azure/scripts
       CREDS: >-
-        ${{ 
-          github.event.inputs.environment == 'prod' && secrets.AZURE_PROD_CICD ||
+        ${{
+          (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
           github.event.inputs.environment == 'sbx' && secrets.AZURE_SBX_CICD ||
           secrets.AZURE_NONPROD_CICD
         }}

@@ -40,6 +40,9 @@ jobs:
         }}
 
     steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+
       - name: Mask sensitive values
         run: |
           echo "::add-mask::${{ fromJson(env.CREDS).clientId }}"
@@ -53,9 +56,6 @@ jobs:
           echo "ARM_CLIENT_SECRET=${{ fromJson(env.CREDS).clientSecret }}" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=${{ fromJson(env.CREDS).tenantId }}" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=${{ fromJson(env.CREDS).subscriptionId }}" >> $GITHUB_ENV
-
-      - name: Checkout current repository
-        uses: actions/checkout@v4
 
       - name: Checkout terraform-cloud-modules-iac
         uses: actions/checkout@v4
@@ -76,11 +76,22 @@ jobs:
             exit 1
           fi
 
+      - name: tfsec - Static Security Analysis (includes modules)
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          working_directory: .
+
+      - name: Scan for secrets with TruffleHog (entire repo)
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          scanArguments: "--path=."
+
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ env.CREDS }}
-          enable-AzPSSession: false
+          enable-AzPSSession: true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

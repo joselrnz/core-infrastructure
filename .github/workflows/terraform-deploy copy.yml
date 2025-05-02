@@ -11,6 +11,8 @@ on:
         options:
           - dev
           - prod
+          - qa
+          - sbx
       module_branch:
         description: 'Branch to fetch from terraform-cloud-modules-iac'
         required: false
@@ -24,35 +26,38 @@ permissions:
 
 jobs:
   terraform:
+    name: 'Terraform'
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
 
     env:
       TF_WORKING_DIR: ./azure/scripts
+      CREDS: >-
+        ${{
+          (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
+          github.event.inputs.environment == 'sbx' && secrets.AZURE_SBX_CICD ||
+          secrets.AZURE_NONPROD_CICD
+        }}
 
     steps:
-      - name: Checkout core infrastructure repo
+      - name: Checkout current repository
         uses: actions/checkout@v4
 
-      - name: Checkout Terraform module repo
-        uses: actions/checkout@v4
-        with:
-          repository: joselrnz/terraform-cloud-modules-iac
-          ref: ${{ github.event.inputs.module_branch }}
-          path: terraform-cloud-modules-iac
-
-      - name: Copy Azure modules into local modules folder
+      - name: Mask sensitive values
         run: |
-          mkdir -p modules
-          if [ -d "terraform-cloud-modules-iac/azure" ]; then
-            cp -r terraform-cloud-modules-iac/azure/* modules/
-            echo "Azure modules copied to modules/"
-          else
-            echo "Azure modules directory not found in terraform-cloud-modules-iac"
-            exit 1
-          fi
+          echo "::add-mask::${{ fromJson(env.CREDS).clientId }}"
+          echo "::add-mask::${{ fromJson(env.CREDS).clientSecret }}"
+          echo "::add-mask::${{ fromJson(env.CREDS).tenantId }}"
+          echo "::add-mask::${{ fromJson(env.CREDS).subscriptionId }}"
 
-      - name: Extract and Mask Azure credentials from secret
+      - name: Export ARM credentials to environment
+        run: |
+          echo "ARM_CLIENT_ID=${{ fromJson(env.CREDS).clientId }}" >> $GITHUB_ENV
+          echo "ARM_CLIENT_SECRET=${{ fromJson(env.CREDS).clientSecret }}" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=${{ fromJson(env.CREDS).tenantId }}" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=${{ fromJson(env.CREDS).subscriptionId }}" >> $GITHUB_ENV
+      - name: Extract & Mask Azure credentials
+        shell: bash
         run: |
           client_id=$(echo '${{ secrets.AZURE_NONPROD_CICD }}' | jq -r '.clientId')
           client_secret=$(echo '${{ secrets.AZURE_NONPROD_CICD }}' | jq -r '.clientSecret')
@@ -68,11 +73,50 @@ jobs:
           echo "ARM_CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=$tenant_id" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=$subscription_id" >> $GITHUB_ENV
+      - name: Checkout terraform-cloud-modules-iac
+        uses: actions/checkout@v4
+        with:
+          repository: joselrnz/terraform-cloud-modules-iac
+          ref: ${{ github.event.inputs.module_branch }}
+          token: ${{ secrets.API_TOKEN_TF }}
+          path: terraform-cloud-modules-iac
 
-      - name: Azure CLI Login
+      - name: Copy modules to correct location
+        run: |
+          mkdir -p modules
+          if [ -d "terraform-cloud-modules-iac/azure" ]; then
+            cp -r terraform-cloud-modules-iac/azure/* modules/
+            echo "Azure modules copied to modules/"
+          else
+            echo "Azure modules directory not found in terraform-cloud-modules-iac"
+            exit 1
+          fi
+
+      # # ✅ TFLint
+      # - name: Install and Run TFLint
+      #   run: |
+      #     curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      #     tflint --init
+      #     tflint --recursive
+
+      # ✅ TFSEC
+      - name: tfsec - Static Security Analysis (includes modules)
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          working_directory: .
+
+      # # ✅ Checkov
+      # - name: Checkov - Compliance and Security Check
+      #   uses: bridgecrewio/checkov-action@master
+      #   with:
+      #     directory: .
+      #     quiet: true
+
+      - name: Azure Login
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_NONPROD_CICD }}
+          creds: ${{ env.CREDS }}
           enable-AzPSSession: true
 
       - name: Setup Terraform
@@ -80,7 +124,7 @@ jobs:
         with:
           terraform_version: 1.8.3
 
-      - name: Terraform Format Check
+      - name: Terraform Format
         run: terraform fmt -check -recursive
         working-directory: ${{ env.TF_WORKING_DIR }}
 
@@ -92,7 +136,7 @@ jobs:
             -backend-config="container_name=tfstate" \
             -backend-config="key=${{ github.event.inputs.environment }}/terraform.tfstate"
         working-directory: ${{ env.TF_WORKING_DIR }}
-     
+
       - name: Terraform Validate
         run: terraform validate
         working-directory: ${{ env.TF_WORKING_DIR }}

@@ -41,11 +41,11 @@ jobs:
           echo "::add-mask::$ARM_CLIENT_ID"
           echo "::add-mask::$ARM_TENANT_ID"
           echo "::add-mask::$ARM_SUBSCRIPTION_ID"
-        env:
-          ARM_CLIENT_ID: ${{ env.ARM_CLIENT_ID }}
-          ARM_TENANT_ID: ${{ env.ARM_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ env.ARM_SUBSCRIPTION_ID }}
-          
+        # env:
+          # ARM_CLIENT_ID: ${{ env.ARM_CLIENT_ID }}
+          # ARM_TENANT_ID: ${{ env.ARM_TENANT_ID }}
+          # ARM_SUBSCRIPTION_ID: ${{ env.ARM_SUBSCRIPTION_ID }}
+
       - name: Checkout current repository
         uses: actions/checkout@v4
 

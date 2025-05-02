@@ -21,6 +21,7 @@ tags = {
   ManagedBy   = "Terraform"
   Project     = "My Application"
   Owner       = "DevOps Team"
+  BusinessUnit       = "IT"
 }
 
 # Storage Account Configuration

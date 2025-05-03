@@ -18,10 +18,10 @@ resource_group_name = "data-dp203"
 # # Tags
 tags = {
   Environment = "Development"
-  ManagedBy   = "Terraform"
-  Project     = "My Application"
-  Owner       = "DevOps Team"
-  BusinessUnit       = "IT"
+  # ManagedBy   = "Terraform"
+  # Project     = "My Application"
+  # Owner       = "DevOps Team"
+  # BusinessUnit       = "IT"
 }
 
 # Storage Account Configuration

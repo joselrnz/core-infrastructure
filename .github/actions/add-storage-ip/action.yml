@@ -1,5 +1,5 @@
 name: 'Add IP to Azure Storage Whitelist'
-description: 'Add current runner IP address to Azure Storage account firewall rules'
+description: 'Add current runner IP address to Azure Storage account firewall rules and verify access'
 
 inputs:
   environment:
@@ -56,8 +56,6 @@ runs:
       shell: bash
       run: |
         echo "::group::Adding IP to Storage Account Firewall"
-        echo "Adding IP address ${{ steps.get-ip.outputs.ip }}..."
-
         timeout ${{ inputs.operation-timeout }} az storage account network-rule add \
           --resource-group ${{ inputs.resource-group-name }} \
           --account-name ${{ inputs.storage-account-name }} \
@@ -67,48 +65,46 @@ runs:
           echo "::error::Failed to add IP address"
           exit 1
         fi
-
-        echo "::notice::Successfully submitted IP ${{ steps.get-ip.outputs.ip }} for firewall addition"
+        echo "::notice::Successfully submitted IP for firewall addition"
         echo "::endgroup::"
 
-    # - name: Confirm IP Whitelisting
-    #   shell: bash
-    #   run: |
-    #     echo "::group::Verifying IP is active in firewall rules"
-    #     for i in {1..6}; do
-    #       sleep 5
-    #       echo "Checking attempt $i..."
-    #       FOUND=$(az storage account network-rule list \
-    #         --resource-group ${{ inputs.resource-group-name }} \
-    #         --account-name ${{ inputs.storage-account-name }} \
-    #         --query "ipRules[].ipAddressOrRange" -o tsv | grep -Fx "${{ steps.get-ip.outputs.ip }}" || true)
-
-    #       if [[ -n "$FOUND" ]]; then
-    #         echo "::notice::Confirmed IP $FOUND is active in firewall rules."
-    #         echo "ip_confirmed=true" >> $GITHUB_ENV
-    #         break
-    #       fi
-
-    #       if [[ "$i" -eq 6 ]]; then
-    #         echo "::error::IP address not found in firewall rules after waiting"
-    #         exit 1
-    #       fi
-    #     done
-    #     echo "::endgroup::"
-
-
-    - name: Confirm Storage Access via az
+    - name: Confirm Storage Access (5-Min Retry Loop)
       shell: bash
       run: |
-        az storage container list \
-          --account-name ${{ inputs.storage-account-name }} \
-          --auth-mode login \
-          --only-show-errors > /dev/null
-    
-        if [[ $? -eq 0 ]]; then
-          echo "::notice::Confirmed access to blob containers — IP + role are active"
-          echo "ip_confirmed=true" >> $GITHUB_ENV
-        else
-          echo "::error::Storage access failed — IP or role not active"
-          exit 1
-        fi
+        echo "::group::Verifying storage access via az CLI"
+        start_time=$(date +%s)
+        timeout=300
+        interval=10
+
+        while true; do
+          echo "⏳ Attempting to list containers..."
+
+          output=$(az storage container list \
+            --account-name ${{ inputs.storage-account-name }} \
+            --auth-mode login \
+            --only-show-errors 2>&1)
+
+          if [[ $? -eq 0 ]]; then
+            echo "✅ Storage access confirmed."
+            echo "ip_confirmed=true" >> $GITHUB_ENV
+            break
+          fi
+
+          if echo "$output" | grep -qi "network rule"; then
+            echo "⛔ Still blocked by firewall rules."
+          else
+            echo "⚠️ Unexpected error: $output"
+          fi
+
+          current_time=$(date +%s)
+          elapsed=$(( current_time - start_time ))
+
+          if [[ $elapsed -ge $timeout ]]; then
+            echo "::error::Timeout after 5 minutes. Storage access not confirmed."
+            exit 1
+          fi
+
+          echo "Retrying in $interval seconds..."
+          sleep $interval
+        done
+        echo "::endgroup::"

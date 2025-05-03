@@ -1,0 +1,36 @@
+name: 'Set Azure Env Vars'
+description: 'Extract Azure SP credentials from JSON GitHub secret and export as ARM_*'
+inputs:
+  azure_env:
+    required: true
+    description: 'Deployment environment (dev, qa, prod, sbx, etc)'
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        env="${{ inputs.azure_env }}"
+
+        if [[ "$env" == "prod" || "$env" == "qa" ]]; then
+          creds='${{ secrets.AZURE_PROD_CICD }}'
+        elif [[ "$env" == "sbx" ]]; then
+          creds='${{ secrets.AZURE_SBX_CICD }}'
+        else
+          creds='${{ secrets.AZURE_NONPROD_CICD }}'
+        fi
+
+        client_id=$(echo "$creds" | jq -r '.clientId')
+        client_secret=$(echo "$creds" | jq -r '.clientSecret')
+        tenant_id=$(echo "$creds" | jq -r '.tenantId')
+        subscription_id=$(echo "$creds" | jq -r '.subscriptionId')
+
+        echo "::add-mask::$client_id"
+        echo "::add-mask::$client_secret"
+        echo "::add-mask::$tenant_id"
+        echo "::add-mask::$subscription_id"
+
+        echo "ARM_CLIENT_ID=$client_id" >> $GITHUB_ENV
+        echo "ARM_CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
+        echo "ARM_TENANT_ID=$tenant_id" >> $GITHUB_ENV
+        echo "ARM_SUBSCRIPTION_ID=$subscription_id" >> $GITHUB_ENV

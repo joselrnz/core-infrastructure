@@ -54,7 +54,12 @@ jobs:
           else
             echo "Azure modules directory not found in terraform-cloud-modules-iac"
             exit 1
-          fi
+                fi
+
+      - name: Bootstrap TF Environment
+        uses: ./.github/actions/tf-env-bootstrap
+        with:
+          azure_env: ${{ github.event.inputs.environment }}
 
       # ✅ TFSEC Static Security Analysis
       - name: tfsec - Static Security Analysis (includes modules)
@@ -62,33 +67,33 @@ jobs:
         with:
           working_directory: .
 
-      - name: Extract and Mask Azure credentials from selected secret
-        id: extract_creds
-        run: |
-          env="${{ github.event.inputs.environment }}"
+      # - name: Extract and Mask Azure credentials from selected secret
+      #   id: extract_creds
+      #   run: |
+      #     env="${{ github.event.inputs.environment }}"
 
-          if [[ "$env" == "prod" || "$env" == "qa" ]]; then
-            creds='${{ secrets.AZURE_PROD_CICD }}'
-          elif [[ "$env" == "sbx" ]]; then
-            creds='${{ secrets.AZURE_SBX_CICD }}'
-          else
-            creds='${{ secrets.AZURE_NONPROD_CICD }}'
-          fi
+      #     if [[ "$env" == "prod" || "$env" == "qa" ]]; then
+      #       creds='${{ secrets.AZURE_PROD_CICD }}'
+      #     elif [[ "$env" == "sbx" ]]; then
+      #       creds='${{ secrets.AZURE_SBX_CICD }}'
+      #     else
+      #       creds='${{ secrets.AZURE_NONPROD_CICD }}'
+      #     fi
 
-          client_id=$(echo "$creds" | jq -r '.clientId')
-          client_secret=$(echo "$creds" | jq -r '.clientSecret')
-          tenant_id=$(echo "$creds" | jq -r '.tenantId')
-          subscription_id=$(echo "$creds" | jq -r '.subscriptionId')
+      #     client_id=$(echo "$creds" | jq -r '.clientId')
+      #     client_secret=$(echo "$creds" | jq -r '.clientSecret')
+      #     tenant_id=$(echo "$creds" | jq -r '.tenantId')
+      #     subscription_id=$(echo "$creds" | jq -r '.subscriptionId')
 
-          echo "::add-mask::$client_id"
-          echo "::add-mask::$client_secret"
-          echo "::add-mask::$tenant_id"
-          echo "::add-mask::$subscription_id"
+      #     echo "::add-mask::$client_id"
+      #     echo "::add-mask::$client_secret"
+      #     echo "::add-mask::$tenant_id"
+      #     echo "::add-mask::$subscription_id"
 
-          echo "ARM_CLIENT_ID=$client_id" >> $GITHUB_ENV
-          echo "ARM_CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=$tenant_id" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=$subscription_id" >> $GITHUB_ENV
+      #     echo "ARM_CLIENT_ID=$client_id" >> $GITHUB_ENV
+      #     echo "ARM_CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
+      #     echo "ARM_TENANT_ID=$tenant_id" >> $GITHUB_ENV
+      #     echo "ARM_SUBSCRIPTION_ID=$subscription_id" >> $GITHUB_ENV
 
       # - name: Azure CLI Login
       #   uses: azure/login@v2

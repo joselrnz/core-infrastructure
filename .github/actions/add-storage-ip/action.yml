@@ -48,7 +48,6 @@ runs:
           echo "Detected runner IP address: $IP_ADDRESS"
         fi
 
-        # Export output
         echo "ip=$IP_ADDRESS" >> $GITHUB_OUTPUT
         echo "::notice::IP address to be added: $IP_ADDRESS"
 
@@ -64,10 +63,34 @@ runs:
           --account-name ${{ inputs.storage-account-name }} \
           --ip-address ${{ steps.get-ip.outputs.ip }}
 
-        if [[ $? -eq 0 ]]; then
-          echo "::notice::Successfully added IP ${{ steps.get-ip.outputs.ip }}"
-        else
+        if [[ $? -ne 0 ]]; then
           echo "::error::Failed to add IP address"
           exit 1
         fi
+
+        echo "::notice::Successfully submitted IP ${{ steps.get-ip.outputs.ip }} for firewall addition"
+        echo "::endgroup::"
+
+    - name: Confirm IP Whitelisting
+      shell: bash
+      run: |
+        echo "::group::Verifying IP is active in firewall rules"
+        for i in {1..6}; do
+          sleep 5
+          echo "Checking attempt $i..."
+          FOUND=$(az storage account network-rule list \
+            --resource-group ${{ inputs.resource-group-name }} \
+            --account-name ${{ inputs.storage-account-name }} \
+            --query "ipRules[].ipAddressOrRange" -o tsv | grep -Fx "${{ steps.get-ip.outputs.ip }}" || true)
+
+          if [[ -n "$FOUND" ]]; then
+            echo "::notice::Confirmed IP $FOUND is active in firewall rules."
+            break
+          fi
+
+          if [[ "$i" -eq 6 ]]; then
+            echo "::error::IP address not found in firewall rules after waiting"
+            exit 1
+          fi
+        done
         echo "::endgroup::"

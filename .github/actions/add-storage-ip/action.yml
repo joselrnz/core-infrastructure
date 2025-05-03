@@ -42,10 +42,13 @@ runs:
       run: |
         if [[ -n "${{ inputs.specific-ip }}" ]]; then
           IP_ADDRESS="${{ inputs.specific-ip }}"
+          echo "Using provided IP address: $IP_ADDRESS"
         else
           IP_ADDRESS=$(curl -s https://api.ipify.org)
+          echo "Detected runner IP address: $IP_ADDRESS"
         fi
 
+        # Export output
         echo "ip=$IP_ADDRESS" >> $GITHUB_OUTPUT
         echo "::notice::IP address to be added: $IP_ADDRESS"
 

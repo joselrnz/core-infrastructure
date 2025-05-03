@@ -170,3 +170,11 @@ jobs:
             -var-file="../../azure/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
             -auto-approve
         working-directory: ${{ env.TF_WORKING_DIR }}
+      
+      - name: Remove IP from Storage Firewall
+        if: success() && steps.add_ip.outcome == 'success'
+        uses: ./.github/actions/remove-storage-ip
+        with:
+          storage-account-name: mystorageacct
+          resource-group-name: mystorage-rg
+          ip-address: ${{ steps.add_ip.outputs.ip-address }}

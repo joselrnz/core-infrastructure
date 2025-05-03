@@ -1,0 +1,40 @@
+name: 'Remove IP from Azure Storage Whitelist'
+description: 'Remove an IP address from Azure Storage account firewall rules'
+
+inputs:
+  storage-account-name:
+    description: 'Name of the Azure Storage account'
+    required: true
+  resource-group-name:
+    description: 'Name of the resource group containing the storage account'
+    required: true
+  ip-address:
+    description: 'IP address to remove from the storage firewall'
+    required: true
+  operation-timeout:
+    description: 'Timeout for the IP removal operation in seconds'
+    required: false
+    default: '60'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Remove IP from Storage Account Firewall
+      id: remove-ip
+      shell: bash
+      run: |
+        echo "::group::Removing IP from Storage Account Firewall"
+        echo "Removing IP address ${{ inputs.ip-address }}..."
+
+        timeout ${{ inputs.operation-timeout }} az storage account network-rule remove \
+          --resource-group ${{ inputs.resource-group-name }} \
+          --account-name ${{ inputs.storage-account-name }} \
+          --ip-address ${{ inputs.ip-address }}
+
+        if [[ $? -eq 0 ]]; then
+          echo "::notice::Successfully removed IP ${{ inputs.ip-address }}"
+        else
+          echo "::error::Failed to remove IP address"
+          exit 1
+        fi
+        echo "::endgroup::"

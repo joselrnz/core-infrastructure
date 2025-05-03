@@ -71,27 +71,44 @@ runs:
         echo "::notice::Successfully submitted IP ${{ steps.get-ip.outputs.ip }} for firewall addition"
         echo "::endgroup::"
 
-    - name: Confirm IP Whitelisting
+    # - name: Confirm IP Whitelisting
+    #   shell: bash
+    #   run: |
+    #     echo "::group::Verifying IP is active in firewall rules"
+    #     for i in {1..6}; do
+    #       sleep 5
+    #       echo "Checking attempt $i..."
+    #       FOUND=$(az storage account network-rule list \
+    #         --resource-group ${{ inputs.resource-group-name }} \
+    #         --account-name ${{ inputs.storage-account-name }} \
+    #         --query "ipRules[].ipAddressOrRange" -o tsv | grep -Fx "${{ steps.get-ip.outputs.ip }}" || true)
+
+    #       if [[ -n "$FOUND" ]]; then
+    #         echo "::notice::Confirmed IP $FOUND is active in firewall rules."
+    #         echo "ip_confirmed=true" >> $GITHUB_ENV
+    #         break
+    #       fi
+
+    #       if [[ "$i" -eq 6 ]]; then
+    #         echo "::error::IP address not found in firewall rules after waiting"
+    #         exit 1
+    #       fi
+    #     done
+    #     echo "::endgroup::"
+
+
+    - name: Confirm Storage Access via az
       shell: bash
       run: |
-        echo "::group::Verifying IP is active in firewall rules"
-        for i in {1..6}; do
-          sleep 5
-          echo "Checking attempt $i..."
-          FOUND=$(az storage account network-rule list \
-            --resource-group ${{ inputs.resource-group-name }} \
-            --account-name ${{ inputs.storage-account-name }} \
-            --query "ipRules[].ipAddressOrRange" -o tsv | grep -Fx "${{ steps.get-ip.outputs.ip }}" || true)
-
-          if [[ -n "$FOUND" ]]; then
-            echo "::notice::Confirmed IP $FOUND is active in firewall rules."
-            echo "ip_confirmed=true" >> $GITHUB_ENV
-            break
-          fi
-
-          if [[ "$i" -eq 6 ]]; then
-            echo "::error::IP address not found in firewall rules after waiting"
-            exit 1
-          fi
-        done
-        echo "::endgroup::"
+        az storage container list \
+          --account-name ${{ inputs.storage-account-name }} \
+          --auth-mode login \
+          --only-show-errors > /dev/null
+    
+        if [[ $? -eq 0 ]]; then
+          echo "::notice::Confirmed access to blob containers — IP + role are active"
+          echo "ip_confirmed=true" >> $GITHUB_ENV
+        else
+          echo "::error::Storage access failed — IP or role not active"
+          exit 1
+        fi

@@ -90,16 +90,16 @@ jobs:
           echo "ARM_TENANT_ID=$tenant_id" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=$subscription_id" >> $GITHUB_ENV
 
-      - name: Azure CLI Login
-        uses: azure/login@v2
-        with:
-          creds: >-
-            ${{
-              (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
-              (github.event.inputs.environment == 'sbx') && secrets.AZURE_SBX_CICD ||
-              secrets.AZURE_NONPROD_CICD
-            }}
-          enable-AzPSSession: true
+      # - name: Azure CLI Login
+      #   uses: azure/login@v2
+      #   with:
+      #     creds: >-
+      #       ${{
+      #         (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
+      #         (github.event.inputs.environment == 'sbx') && secrets.AZURE_SBX_CICD ||
+      #         secrets.AZURE_NONPROD_CICD
+      #       }}
+      #     enable-AzPSSession: true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

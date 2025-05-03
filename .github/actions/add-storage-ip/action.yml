@@ -65,13 +65,16 @@ runs:
           echo "::error::Failed to add IP address"
           exit 1
         fi
+
         echo "::notice::Successfully submitted IP for firewall addition"
         echo "::endgroup::"
 
     - name: Confirm Storage Access (5-Min Retry Loop)
       shell: bash
       run: |
+        set +e  # prevent exit on command failure
         echo "::group::Verifying storage access via az CLI"
+
         start_time=$(date +%s)
         timeout=300
         interval=10
@@ -107,4 +110,5 @@ runs:
           echo "Retrying in $interval seconds..."
           sleep $interval
         done
+
         echo "::endgroup::"

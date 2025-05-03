@@ -1,29 +1,20 @@
-name: 'Set Azure Env Vars'
-description: 'Extract Azure SP credentials from JSON GitHub secret and export as ARM_*'
+name: 'TF Env Bootstrap'
+description: 'Bootstrap environment variables (ARM_*) for Terraform based on selected environment.'
+
 inputs:
-  azure_env:
+  azure_creds:
     required: true
-    description: 'Deployment environment (dev, qa, prod, sbx, etc)'
+    description: 'Azure credential secret (JSON blob from GitHub secrets)'
 
 runs:
   using: "composite"
   steps:
     - shell: bash
       run: |
-        env="${{ inputs.azure_env }}"
-
-        if [[ "$env" == "prod" || "$env" == "qa" ]]; then
-          creds='${{ secrets.AZURE_PROD_CICD }}'
-        elif [[ "$env" == "sbx" ]]; then
-          creds='${{ secrets.AZURE_SBX_CICD }}'
-        else
-          creds='${{ secrets.AZURE_NONPROD_CICD }}'
-        fi
-
-        client_id=$(echo "$creds" | jq -r '.clientId')
-        client_secret=$(echo "$creds" | jq -r '.clientSecret')
-        tenant_id=$(echo "$creds" | jq -r '.tenantId')
-        subscription_id=$(echo "$creds" | jq -r '.subscriptionId')
+        client_id=$(echo '${{ inputs.azure_creds }}' | jq -r '.clientId')
+        client_secret=$(echo '${{ inputs.azure_creds }}' | jq -r '.clientSecret')
+        tenant_id=$(echo '${{ inputs.azure_creds }}' | jq -r '.tenantId')
+        subscription_id=$(echo '${{ inputs.azure_creds }}' | jq -r '.subscriptionId')
 
         echo "::add-mask::$client_id"
         echo "::add-mask::$client_secret"

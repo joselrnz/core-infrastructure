@@ -70,15 +70,15 @@ jobs:
         uses: ./.github/actions/add-storage-ip
         with:
           environment: ${{ github.event.inputs.environment }}
-          storage-account-name: mystorageacct
-          resource-group-name: mystorage-rg
+          storage-account-name: "terraformstateclouddev"
+          resource-group-name: "data-dp203"
           azure_creds: >-
             ${{
               (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
               (github.event.inputs.environment == 'sbx') && secrets.AZURE_SBX_CICD ||
               secrets.AZURE_NONPROD_CICD
             }}
-      
+
       # ✅ TFSEC Static Security Analysis
       - name: tfsec - Static Security Analysis (includes modules)
         uses: aquasecurity/tfsec-action@v1.0.0

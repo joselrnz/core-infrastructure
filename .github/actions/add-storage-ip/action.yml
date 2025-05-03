@@ -85,6 +85,7 @@ runs:
 
           if [[ -n "$FOUND" ]]; then
             echo "::notice::Confirmed IP $FOUND is active in firewall rules."
+            echo "ip_confirmed=true" >> $GITHUB_ENV
             break
           fi
 

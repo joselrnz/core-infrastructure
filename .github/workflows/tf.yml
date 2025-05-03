@@ -172,9 +172,9 @@ jobs:
         working-directory: ${{ env.TF_WORKING_DIR }}
       
       - name: Remove IP from Storage Firewall
-        if: success() && steps.add_ip.outcome == 'success'
+        if: always() && env.ip_confirmed == 'true'
         uses: ./.github/actions/remove-storage-ip
         with:
-          storage-account-name: mystorageacct
-          resource-group-name: mystorage-rg
+          storage-account-name: "terraformstateclouddev"
+          resource-group-name: "data-dp203"
           ip-address: ${{ steps.add_ip.outputs.ip-address }}

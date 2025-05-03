@@ -1,6 +1,6 @@
-# .github/actions/add-storage-ip/action.yml
 name: 'Add IP to Azure Storage Whitelist'
 description: 'Add current runner IP address to Azure Storage account firewall rules'
+
 inputs:
   environment:
     description: 'Deployment environment (dev, qa, prod, sbx, etc)'
@@ -11,8 +11,8 @@ inputs:
   resource-group-name:
     description: 'Name of the resource group containing the storage account'
     required: true
-  subscription-id:
-    description: 'Azure subscription ID'
+  azure_creds:
+    description: 'Azure credential secret (JSON from GitHub Secrets)'
     required: true
   operation-timeout:
     description: 'Timeout for the IP adding operation in seconds'
@@ -27,72 +27,44 @@ outputs:
   ip-address:
     description: 'IP address that was added to the whitelist'
     value: ${{ steps.get-ip.outputs.ip }}
-  
+
 runs:
   using: "composite"
   steps:
-    - name: Azure Login
+    - name: Azure CLI Login
       uses: azure/login@v1
       with:
-        creds: >-
-          ${{
-            (inputs.environment == 'prod' || inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
-            (inputs.environment == 'sbx') && secrets.AZURE_SBX_CICD ||
-            secrets.AZURE_NONPROD_CICD
-          }}
-    
+        creds: ${{ inputs.azure_creds }}
+
     - name: Get IP Address
       id: get-ip
       shell: bash
       run: |
         if [[ -n "${{ inputs.specific-ip }}" ]]; then
-          # Use provided IP address
           IP_ADDRESS="${{ inputs.specific-ip }}"
-          echo "Using provided IP address: $IP_ADDRESS"
         else
-          # Get current runner IP address
           IP_ADDRESS=$(curl -s https://api.ipify.org)
-          echo "Detected runner IP address: $IP_ADDRESS"
         fi
-        
+
         echo "ip=$IP_ADDRESS" >> $GITHUB_OUTPUT
         echo "::notice::IP address to be added: $IP_ADDRESS"
-    
-    - name: Validate Service Principal Access
-      shell: bash
-      run: |
-        echo "::group::Validating Service Principal permissions"
-        CLIENT_ID=$(echo '${{ inputs.azure-credentials }}' | jq -r '.clientId')
-        
-        echo "Checking role assignments for service principal..."
-        az role assignment list --assignee "$CLIENT_ID" \
-          --scope "/subscriptions/${{ inputs.subscription-id }}/resourceGroups/${{ inputs.resource-group-name }}/providers/Microsoft.Storage/storageAccounts/${{ inputs.storage-account-name }}" \
-          --query "[].roleDefinitionName" -o tsv
-        
-        if [[ $? -ne 0 ]]; then
-          echo "::error::Failed to validate service principal permissions"
-          exit 1
-        fi
-        echo "::endgroup::"
-    
+
     - name: Add IP to Storage Account Firewall
       id: add-ip
       shell: bash
       run: |
         echo "::group::Adding IP to Storage Account Firewall"
-        echo "Adding IP address ${{ steps.get-ip.outputs.ip }} to storage account firewall..."
-        
-        # Add the IP address to the storage account firewall
+        echo "Adding IP address ${{ steps.get-ip.outputs.ip }}..."
+
         timeout ${{ inputs.operation-timeout }} az storage account network-rule add \
           --resource-group ${{ inputs.resource-group-name }} \
           --account-name ${{ inputs.storage-account-name }} \
           --ip-address ${{ steps.get-ip.outputs.ip }}
-        
+
         if [[ $? -eq 0 ]]; then
-          echo "Successfully added IP address to storage account firewall"
-          echo "::notice::Successfully added IP ${{ steps.get-ip.outputs.ip }} to storage account firewall"
+          echo "::notice::Successfully added IP ${{ steps.get-ip.outputs.ip }}"
         else
-          echo "::error::Failed to add IP address to storage account firewall"
+          echo "::error::Failed to add IP address"
           exit 1
         fi
         echo "::endgroup::"

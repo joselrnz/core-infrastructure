@@ -66,6 +66,19 @@ jobs:
               secrets.AZURE_NONPROD_CICD
             }}
 
+      - name: Add Runner IP to Storage Firewall
+        uses: ./.github/actions/add-storage-ip
+        with:
+          environment: ${{ github.event.inputs.environment }}
+          storage-account-name: mystorageacct
+          resource-group-name: mystorage-rg
+          azure_creds: >-
+            ${{
+              (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
+              (github.event.inputs.environment == 'sbx') && secrets.AZURE_SBX_CICD ||
+              secrets.AZURE_NONPROD_CICD
+            }}
+      
       # ✅ TFSEC Static Security Analysis
       - name: tfsec - Static Security Analysis (includes modules)
         uses: aquasecurity/tfsec-action@v1.0.0

@@ -20,7 +20,7 @@ tags = {
   Environment = "Development"
   # ManagedBy   = "Terraform"
   # Project     = "My Application"
-  # Owner       = "DevOps Team"
+  Owner       = "DevOps Team"
   # BusinessUnit       = "IT"
 }
 

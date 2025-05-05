@@ -19,7 +19,7 @@ resource_group_name = "data-dp203"
 tags = {
   Environment = "Development"
   # ManagedBy   = "Terraform"
-  # Project     = "My Application"
+  Project     = "My Application"
   Owner       = "DevOps Team"
   # BusinessUnit       = "IT"
 }

@@ -23,8 +23,8 @@ data "azurerm_resource_group" "this" {
 
 # Storage Account using the local module instead of remote Git source
 module "storage_account" {
-  source = "../../modules/storage" # Path to your local module
-
+  # source = "../../modules/storage" # Path to your local module
+  source = "git::https://github.com/your-org/terraform-cloud-modules-iac.git//azure/storage?ref=develop"
   storage_account_name              = var.storage_account_name
   resource_group_name               = data.azurerm_resource_group.this.name
   location                          = var.location

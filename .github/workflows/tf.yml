@@ -67,7 +67,8 @@ jobs:
             }}
 
       - name: Add Runner IP to Storage Firewall
-        uses: ./.github/actions/add-storage-ip
+        # uses: ./.github/actions/add-storage-ip
+        uses: joselrnz/core-infrastructure/.github/actions/add-storage-ip@main
         with:
           environment: ${{ github.event.inputs.environment }}
           storage-account-name: "terraformstateclouddev"

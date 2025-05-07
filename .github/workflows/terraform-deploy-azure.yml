@@ -1,4 +1,4 @@
-name: 'TF'
+name: 'terraform-deploy-azure'
 
 on:
   workflow_dispatch:

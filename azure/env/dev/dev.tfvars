@@ -19,20 +19,20 @@ resource_group_name = "data-dp203"
 tags = {
   Environment = "Development"
   # ManagedBy   = "Terraform"
-  Project     = "My Application"
-  Owner       = "DevOps Team"
+  Project = "My Application"
+  Owner   = "DevOps Team"
   # BusinessUnit       = "IT"
 }
 
 # Storage Account Configuration
-storage_account_name       = "stkafkajoselrnz"
-account_tier               = "Standard"
-account_replication_type   = "LRS"
-account_kind               = "StorageV2"
-access_tier                = "Hot"
-enable_versioning          = true
-enable_delete_retention    = true
-delete_retention_days      = 14
+storage_account_name     = "stkafkajoselrnz"
+account_tier             = "Standard"
+account_replication_type = "LRS"
+account_kind             = "StorageV2"
+access_tier              = "Hot"
+enable_versioning        = true
+enable_delete_retention  = true
+delete_retention_days    = 14
 
 # Storage Containers
 containers = [

@@ -1,0 +1,123 @@
+name: 'terraform-deploy-digitalocean'
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - tst
+          - uat
+          - sbx
+          - qa
+          - prod
+      module_branch:
+        description: 'Branch to fetch from terraform-cloud-modules-iac'
+        required: false
+        default: 'develop'
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  packages: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    env:
+      TF_WORKING_DIR: ./digitalocean/scripts
+      TF_VAR_do_token: ${{ secrets.TF_VAR_do_token }}
+      TF_VAR_trusted_ip: ${{ secrets.TF_VAR_trusted_ip }}
+
+    steps:
+      - name: Checkout core infrastructure repo
+        uses: actions/checkout@v4
+
+      - name: Checkout Terraform module repo
+        uses: actions/checkout@v4
+        with:
+          repository: joselrnz/terraform-cloud-modules-iac
+          ref: ${{ github.event.inputs.module_branch }}
+          path: terraform-cloud-modules-iac
+
+      - name: Copy digitalocean modules into local modules folder
+        run: |
+          mkdir -p modules
+          if [ -d "terraform-cloud-modules-iac/digitalocean" ]; then
+            cp -r terraform-cloud-modules-iac/digitalocean/* modules/
+            echo "digitalocean modules copied to modules/"
+          else
+            echo "digitalocean modules directory not found in terraform-cloud-modules-iac"
+            exit 1
+                fi
+
+      - name: Bootstrap digitalocean Env Credentials for Terraform
+        uses: ./.github/actions/tf-env-bootstrap
+        with:
+          azure_creds: >-
+            ${{
+              (github.event.inputs.environment == 'prod' || github.event.inputs.environment == 'qa') && secrets.AZURE_PROD_CICD ||
+              (github.event.inputs.environment == 'sbx') && secrets.AZURE_SBX_CICD ||
+              secrets.AZURE_NONPROD_CICD
+            }}
+
+      # ✅ TFSEC Static Security Analysis
+      - name: tfsec - Static Security Analysis (includes modules)
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: .
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=data-dp203" \
+            -backend-config="storage_account_name=terraformstateclouddev" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="key=digitalocean/${{ github.event.inputs.environment }}/terraform.tfstate"
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      # - name: Confirm tfvars file exists and inspect structure
+      #   run: |
+      #     echo "Looking for tfvars file: ../../digitalocean/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars"
+      #     find ../.. -type f
+      #     test -f ../../digitalocean/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars || {
+      #       echo "ERROR: tfvars file not found!" >&2
+      #       exit 1
+      #     }
+      #   working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="../../digitalocean/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
+            -no-color
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -var-file="../../digitalocean/env/${{ github.event.inputs.environment }}/${{ github.event.inputs.environment }}.tfvars" \
+            -auto-approve
+        working-directory: ${{ env.TF_WORKING_DIR }}
+      

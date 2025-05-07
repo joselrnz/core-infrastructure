@@ -4,7 +4,6 @@ module "vpc" {
   region       = var.region
   vpc_ip_range = var.vpc_ip_range
   trusted_ip   = var.trusted_ip
-  cluster_name = var.cluster_name
 }
 
 module "kubernetes" {

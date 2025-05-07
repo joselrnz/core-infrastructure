@@ -9,10 +9,10 @@ terraform {
       source  = "digitalocean/digitalocean" # ✅ Correct
       version = "~> 2.24"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.20"
-    }
+    # kubernetes = {
+    #   source  = "hashicorp/kubernetes"
+    #   version = "~> 2.20"
+    # }
     # helm = {
     #   source  = "hashicorp/helm"
     #   version = "~> 2.9"

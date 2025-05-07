@@ -3,7 +3,7 @@ module "vpc" {
   vpc_name     = var.vpc_name
   region       = var.region
   vpc_ip_range = var.vpc_ip_range
-  trusted_ip   = var.trusted_ip
+  # trusted_ip   = var.trusted_ip
 }
 
 module "kubernetes" {

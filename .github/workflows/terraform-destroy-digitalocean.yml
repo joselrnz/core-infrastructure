@@ -1,4 +1,4 @@
-name: 'terraform-deploy-digitalocean'
+name: 'terraform-destroy-digitalocean'
 
 on:
   workflow_dispatch:

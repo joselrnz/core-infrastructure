@@ -6,7 +6,7 @@ provider "digitalocean" {
 terraform {
   required_providers {
     digitalocean = {
-      source  = "digitalocean/digitalocean"  # ✅ Correct
+      source  = "digitalocean/digitalocean" # ✅ Correct
       version = "~> 2.24"
     }
     kubernetes = {

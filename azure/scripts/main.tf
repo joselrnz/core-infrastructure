@@ -52,3 +52,54 @@ module "storage_account" {
 
 
 
+module "networking" {
+  source = "../../modules/storage"
+
+  vnet_name          = "vnet-core-dev"
+  vnet_address_space = ["10.0.0.0/16"]
+  location           = "eastus"
+  resource_group_name = "rg-hub-dev"
+  
+  subnets = {
+    public = {
+      name           = "public-subnet"
+      address_prefix = "10.0.1.0/24"
+      security_group = ""
+    }
+    private = {
+      name           = "private-subnet"
+      address_prefix = "10.0.2.0/24"
+      security_group = ""
+    }
+  }
+
+  route_tables = {
+    public = {
+      name = "public-rt"
+      routes = [
+        {
+          name                   = "internet-route"
+          address_prefix         = "0.0.0.0/0"
+          next_hop_type          = "Internet"
+          next_hop_in_ip_address = null
+        }
+      ]
+    }
+    private = {
+      name = "private-rt"
+      routes = [
+        {
+          name                   = "default-route"
+          address_prefix         = "0.0.0.0/0"
+          next_hop_type          = "VirtualAppliance"
+          next_hop_in_ip_address = "10.0.1.4"
+        }
+      ]
+    }
+  }
+
+  tags = {
+    Environment = "Production"
+    Owner       = "Infrastructure Team"
+  }
+}

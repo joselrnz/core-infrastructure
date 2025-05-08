@@ -53,7 +53,7 @@ module "storage_account" {
 
 
 module "networking" {
-  source = "../../modules/storage"
+  source = "../../modules/network-core"
 
   vnet_name           = "vnet-core-dev"
   vnet_address_space  = ["10.0.0.0/16"]

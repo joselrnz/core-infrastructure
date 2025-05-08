@@ -26,6 +26,7 @@ permissions:
   pull-requests: write
   packages: read
 
+
 jobs:
   terraform:
     runs-on: ubuntu-latest

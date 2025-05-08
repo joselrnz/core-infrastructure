@@ -55,11 +55,11 @@ module "storage_account" {
 module "networking" {
   source = "../../modules/storage"
 
-  vnet_name          = "vnet-core-dev"
-  vnet_address_space = ["10.0.0.0/16"]
-  location           = "eastus"
+  vnet_name           = "vnet-core-dev"
+  vnet_address_space  = ["10.0.0.0/16"]
+  location            = "eastus"
   resource_group_name = "rg-hub-dev"
-  
+
   subnets = {
     public = {
       name           = "public-subnet"

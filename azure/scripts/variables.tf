@@ -95,3 +95,17 @@ variable "containers" {
 
 
 
+variable "storage_account_name" {
+  type        = string
+  description = "Name of the existing storage account"
+}
+
+variable "resource_group_name" {
+  type        = string
+  description = "Name of the resource group"
+}
+
+variable "principal_id" {
+  type        = string
+  description = "Object ID of the service principal or user"
+}

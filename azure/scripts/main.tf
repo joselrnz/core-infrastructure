@@ -103,3 +103,12 @@ module "networking" {
     Owner       = "Infrastructure Team"
   }
 }
+
+
+module "assign_rbac_to_storage" {
+  source = "../../modules/rbac"
+
+  scope                = module.storage_account.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = "060b9315-2e78-4301-94d1-6bb95b06c1c7"
+}

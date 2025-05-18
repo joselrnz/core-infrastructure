@@ -123,12 +123,11 @@ module "networking" {
 
 module "assign_rbac_to_storage" {
   source = "../../modules/rbac"
-
   role_assignments = [
     {
       principal_id         = "060b9315-2e78-4301-94d1-6bb95b06c1c7"
       scope                = module.storage_account.id
-      role_definition_name = "Storage Blob Data Contributor"
+      role_definition_name = "Reader"
     }
   ]
 }

@@ -126,7 +126,7 @@ module "assign_rbac_to_storage" {
   role_assignments = [
     {
       principal_id         = "060b9315-2e78-4301-94d1-6bb95b06c1c7"
-      scope                = module.storage_account.id
+      scope                = module.storage_account.storage_account_id
       role_definition_name = "Reader"
     }
   ]

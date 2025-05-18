@@ -29,3 +29,8 @@ output "containers" {
   description = "Map of containers"
   value       = module.storage_account.containers
 }
+
+
+output "role_assignment_ids" {
+  value = [for ra in azurerm_role_assignment.dynamic : ra.id]
+}

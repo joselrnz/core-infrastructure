@@ -94,3 +94,13 @@ variable "containers" {
 
 
 
+variable "role_assignments" {
+  description = "List of role assignments. Each must have a principal_id and scope. One of role_definition_name or role_definition_id is required."
+  type = list(object({
+    principal_id         = string
+    scope                = string
+    role_definition_name = optional(string)
+    role_definition_id   = optional(string)
+  }))
+  default = []
+}
